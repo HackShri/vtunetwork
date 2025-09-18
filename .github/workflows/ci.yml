@@ -1,41 +1,41 @@
-
 name: build-and-lint
 
 on:
   push:
-    branches: [main,dev]
-  pull-request:
-    branches: [main,dev]
+    branches: [main, dev]
+  pull_request:       # <-- fixed typo
+    branches: [main, dev]
+
 jobs:
-build-and-lint:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+  build-and-lint:     # <-- indented under jobs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Setup Node
-      uses: actions/setup-node@v3
-      with:
-        node-version: 20
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
 
-    - name: Install backend dependencies
-      working-directory: server
-      run: npm ci
+      - name: Install backend dependencies
+        working-directory: server
+        run: npm ci
 
-    - name: Lint backend
-      working-directory: server
-      run: npm run lint -- --max-warnings=0
+      - name: Lint backend
+        working-directory: server
+        run: npm run lint -- --max-warnings=0
 
-    - name: Install frontend dependencies
-      working-directory: client
-      run: npm ci
+      - name: Install frontend dependencies
+        working-directory: client
+        run: npm ci
 
-    - name: Lint frontend
-      working-directory: client
-      run: npm run lint -- --max-warnings=0
+      - name: Lint frontend
+        working-directory: client
+        run: npm run lint -- --max-warnings=0
 
-    - name: Build backend Docker image
-      run: docker build -t backend ./server
+      - name: Build backend Docker image
+        run: docker build -t backend ./server
 
-    - name: Build frontend Docker image
-      run: docker build -t frontend ./client
+      - name: Build frontend Docker image
+        run: docker build -t frontend ./client

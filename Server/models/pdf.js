@@ -1,21 +1,25 @@
-const mongoose = require('mongoose')
-const cloudUploadSchema = new mongoose.Schema({
+const mongoose = require('mongoose');
+const cloudUploadSchema = new mongoose.Schema(
+  {
     public_id: { type: String, required: true },
     secure_url: { type: String, required: true },
     normal_url: { type: String },
     original_filename: { type: String },
-    asset_id: { type: String }
-}, { _id: false }) // prevent auto _id in sub-documents
+    asset_id: { type: String },
+  },
+  { _id: false },
+); // prevent auto _id in sub-documents
 
-const uploadSchema = new mongoose.Schema({
+const uploadSchema = new mongoose.Schema(
+  {
     clouduploads: {
-        type: [cloudUploadSchema],
-        required: true,
-        validate: v => Array.isArray(v) && v.length > 0
+      type: [cloudUploadSchema],
+      required: true,
+      validate: (v) => Array.isArray(v) && v.length > 0,
     },
     branch: { type: String, required: true },
     semester: { type: String, required: true },
-    subjectCode: { type: String},// required: true },
+    subjectCode: { type: String }, // required: true },
     subjectName: { type: String, required: true },
     title: { type: String, required: true },
     description: { type: String },
@@ -30,7 +34,9 @@ const uploadSchema = new mongoose.Schema({
     downloadsCount: { type: Number, default: 0 },
     previewImageUrl: { type: String },
     folder: { type: String, default: 'pdfFiles' },
-}, { timestamps: true })
+  },
+  { timestamps: true },
+);
 
-const Upload = mongoose.model('Upload', uploadSchema)
-module.exports = Upload
+const Upload = mongoose.model('Upload', uploadSchema);
+module.exports = Upload;

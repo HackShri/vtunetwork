@@ -3,11 +3,11 @@ name: build-and-lint
 on:
   push:
     branches: [main, dev]
-  pull_request:       # <-- fixed typo
+  pull_request:
     branches: [main, dev]
 
 jobs:
-  build-and-lint:     # <-- indented under jobs
+  build-and-lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -18,24 +18,31 @@ jobs:
         with:
           node-version: 20
 
+      # Debug step to confirm folder structure on GitHub runner
+      - name: List repo files
+        run: ls -R
+
+      # Backend steps
       - name: Install backend dependencies
-        working-directory: server
+        working-directory: Server   # <-- capital S
         run: npm ci
 
       - name: Lint backend
-        working-directory: server
+        working-directory: Server
         run: npm run lint -- --max-warnings=0
 
+      # Frontend steps
       - name: Install frontend dependencies
-        working-directory: my-app
+        working-directory: my-app   # <-- your frontend folder
         run: npm ci
 
       - name: Lint frontend
         working-directory: my-app
         run: npm run lint -- --max-warnings=0
 
+      # Docker build steps
       - name: Build backend Docker image
-        run: docker build -t backend ./server
+        run: docker build -t backend ./Server
 
       - name: Build frontend Docker image
         run: docker build -t frontend ./my-app

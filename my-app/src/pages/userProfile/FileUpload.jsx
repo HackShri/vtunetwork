@@ -78,18 +78,30 @@ export default function FileUpload() {
             const data = new FormData();
             data.append('file', file);
             data.append('upload_preset', UPLOAD_PRESET);
-            data.append('folder', UPLOAD_PRESET);
+            data.append('folder', 'VTU_network');
+            // Remove .pdf extension from filename to prevent duplication
+            const fileNameWithoutExt = file.name.replace(/\.pdf$/i, '');
+            data.append('public_id', `${Date.now()}_${fileNameWithoutExt}`);
 
             try {
                 const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
                     method: "POST",
                     body: data
                 });
+                
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    console.error('Cloudinary upload failed:', errorText);
+                    throw new Error(`Cloudinary upload failed: ${res.status}`);
+                }
+                
                 const datas = await res.json();
+                console.log('Cloudinary upload success:', datas);
+                
                 uploadedUrls.push({
                     public_id: datas.public_id,
                     secure_url: datas.secure_url,
-                    normal_url: datas.normal_url,
+                    normal_url: datas.normal_url || datas.secure_url,
                     original_filename: datas.original_filename,
                     asset_id: datas.asset_id
                 });

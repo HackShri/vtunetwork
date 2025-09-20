@@ -81,18 +81,33 @@ export default function PDFPreviewPage() {
         async function fetchPdf() {
             if (id) {
                 try {
-                    let response = await fetch(`${API_BASE}/api/user/fetchPdf/` + id)
+                    let response = await fetch(`${API_BASE}/api/user/fetchPdf/` + id, {
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text()
+                        console.error('HTTP error response:', errorText)
+                        throw new Error(`HTTP error! status: ${response.status}`)
+                    }
+                    
                     let data = await response.json()
-                    if (data) {
+                    
+                    if (data && data.success && data.data && data.data.length > 0) {
                         setpdfs(data.data[0])
+                    } else {
+                        console.error('No PDF data found:', data)
                     }
                 } catch (error) {
-                    console.log(error)
+                    console.error('Error fetching PDF:', error)
                 }
             }
         }
         fetchPdf();
-    }, [])
+    }, [id, API_BASE])
     useEffect(() => {
         async function fetchreviews() {
             if (id) {
@@ -265,13 +280,30 @@ export default function PDFPreviewPage() {
                         <div className="bg-[#131C2A] rounded-2xl p-6 shadow-lg border border-zinc-800">
                             <h2 className="text-xl font-semibold mb-4">PDF Preview</h2>
                             <div className="bg-zinc-800 rounded-xl overflow-hidden" style={{ height: "600px" }}>
-                                <iframe
-                                    src={pdfs?.clouduploads[0]?.secure_url}
-
-                                    className="w-[100%] h-[600px]"
-                                    frameborder="0"
-                                ></iframe>
-
+                                {pdfs?.clouduploads && pdfs.clouduploads.length > 0 ? (
+                                    <div>
+                                        <p className="text-xs text-gray-500 mb-2">
+                                            PDF URL: {pdfs.clouduploads[0].secure_url}
+                                        </p>
+                                        <iframe
+                                            src={`${pdfs.clouduploads[0].secure_url}#toolbar=0&navpanes=0&scrollbar=0`}
+                                            className="w-[100%] h-[600px]"
+                                            frameBorder="0"
+                                            title="PDF Preview"
+                                            onError={(e) => {
+                                                console.error('PDF iframe failed to load:', e);
+                                            }}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-gray-400">
+                                        <div className="text-center">
+                                            <p className="text-lg mb-2">No PDF available</p>
+                                            <p className="text-sm">The PDF file could not be loaded</p>
+                                            <p className="text-xs mt-2">PDFs object: {JSON.stringify(pdfs)}</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -281,8 +313,8 @@ export default function PDFPreviewPage() {
                         <div className="bg-[#131C2A] rounded-2xl p-6 shadow-lg border border-zinc-800 space-y-6">
                             {/* Title & Description */}
                             <div>
-                                <h1 className="text-2xl font-bold mb-3">{pdfs?.title[0].toUpperCase() + pdfs?.title.slice(1,)}</h1>
-                                <p className="text-sm text-gray-400">{pdfs?.description[0].toUpperCase() + pdfs?.description.slice(1,)}</p>
+                                <h1 className="text-2xl font-bold mb-3">{pdfs?.title ? pdfs.title.charAt(0).toUpperCase() + pdfs.title.slice(1) : 'Untitled'}</h1>
+                                <p className="text-sm text-gray-400">{pdfs?.description ? pdfs.description.charAt(0).toUpperCase() + pdfs.description.slice(1) : 'No description available'}</p>
                             </div>
 
                             {/* Tags */}
@@ -327,13 +359,19 @@ export default function PDFPreviewPage() {
                                 </div>
                             </div>
                             {/* Download Button */}
-                            <a className="mt-2 block" href={pdfs?.clouduploads[0]?.secure_url} download={true} target="_blank" rel="noopener noreferrer">
-
-                                <Button className="w-full bg-blue-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold">
+                            {pdfs?.clouduploads && pdfs.clouduploads.length > 0 ? (
+                                <a className="mt-2 block" href={pdfs.clouduploads[0].secure_url} download={true} target="_blank" rel="noopener noreferrer">
+                                    <Button className="w-full bg-blue-600 hover:bg-purple-700 text-white py-3 rounded-xl font-semibold">
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Download PDF
+                                    </Button>
+                                </a>
+                            ) : (
+                                <Button disabled className="w-full bg-gray-600 text-white py-3 rounded-xl font-semibold">
                                     <Download className="w-4 h-4 mr-2" />
-                                    Download PDF
+                                    PDF Not Available
                                 </Button>
-                            </a>
+                            )}
                             {/* Rating Section */}
                             <div className="space-y-3">
                                 <h3 className="text-sm font-semibold text-gray-300">Rate this document</h3>

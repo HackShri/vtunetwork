@@ -67,18 +67,25 @@ async function fileReturn(req, res) {
 }
 async function fetchSinglepdf(req, res) {
   let { id } = req.params;
+  
   try {
     let responses = await Upload.find({ _id: id });
-    if (responses) {
+    
+    if (responses && responses.length > 0) {
       return res.json({
         data: responses,
-        message: 'Ther pdfs are successfully fetched',
+        message: 'The pdf is successfully fetched',
         success: true,
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: 'PDF not found',
       });
     }
   } catch (error) {
-    console.log(error.message);
-    return res.status(504).json({
+    console.error('Database error:', error.message);
+    return res.status(500).json({
       success: false,
       message: 'There is internal Server Error',
       error: error.message,

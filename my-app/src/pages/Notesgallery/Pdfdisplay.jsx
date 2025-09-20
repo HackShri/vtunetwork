@@ -86,7 +86,8 @@ export default function Pdfdisplay() {
         async function fetchQuerypdf() {
             try {
                 console.log(selectedBranch, selectedSemester, selectedSubject)
-                let response = await fetch(`https://vtu-network.onrender.com/api/user/filter?branch=${selectedBranch}&semester=${selectedSemester}&subject=${selectedSubject}`)
+                const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+                let response = await fetch(`${API_BASE}/api/user/filter?branch=${selectedBranch}&semester=${selectedSemester}&subject=${selectedSubject}`)
                 let data = await response.json()
                 console.log(data)
             } catch (error) {

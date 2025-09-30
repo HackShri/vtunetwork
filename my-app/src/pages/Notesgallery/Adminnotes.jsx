@@ -6,8 +6,7 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { NoteCard } from "./Pdfdisplay";
 import { Badge } from "@/components/ui/badge";
-import { branches } from "@/common/data";
-import { subjects } from "@/common/data";
+import { branches, getSubjects } from "@/common/data";
 
 function Adminnotes() {
     const dispatch = useDispatch()
@@ -18,7 +17,7 @@ function Adminnotes() {
 
     const availableSubjects =
         selectedBranch && selectedSemester
-            ? subjects[selectedBranch]?.[Number.parseInt(selectedSemester)] || []
+            ? getSubjects(selectedBranch, selectedSemester) || []
             : []
     const officialNotes = [
         {

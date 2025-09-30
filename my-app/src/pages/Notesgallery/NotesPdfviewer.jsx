@@ -1,4 +1,4 @@
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 "use client"
 
 import { useEffect, useState } from "react"
@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import Header from "@/components/Header"
-import { useNavigate } from "react-router-dom"
-import { branches, semesters, subjects } from "@/common/data"
+import { useNavigate, useLocation } from "react-router-dom"
+import { branches, semesters, subjects, getSubjects } from "@/common/data"
 
 export default function NotesPage() {
     const navigate = useNavigate()
+    const location = useLocation()
     const [filters, setFilters] = useState({
         branch: "",
         semester: "",
@@ -40,6 +41,20 @@ export default function NotesPage() {
 
         fetchthedata()
     }, [filters])
+
+    // Initialize filters from URL query params when arriving from homepage
+    useEffect(() => {
+        const params = new URLSearchParams(location.search)
+        const branch = params.get('branch') || ''
+        const semester = params.get('semester') || ''
+        const subject = params.get('subject') || ''
+        const subjectCode = params.get('subjectCode') || ''
+        if (branch || semester || subject || subjectCode) {
+            setFilters({ branch, semester, subject, subjectCode })
+            setCurrentPage(1)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.search])
     // User profile setup dialog state
     const [showProfileDialog, setShowProfileDialog] = useState(true)
     const [userProfile, setUserProfile] = useState({
@@ -227,7 +242,7 @@ export default function NotesPage() {
                                         <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                             {filters.branch &&
                                                 filters.semester &&
-                                                subjects[filters.branch]?.[filters.semester]?.map((subject) => (
+                                                getSubjects(filters.branch, filters.semester).map((subject) => (
                                                     <SelectItem key={subject} value={subject}>
                                                         {subject}
                                                     </SelectItem>

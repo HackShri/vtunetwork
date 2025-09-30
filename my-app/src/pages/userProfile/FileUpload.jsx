@@ -1,6 +1,6 @@
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-    const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
-    const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'pdfFiles'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'pdfFiles'
 "use client"
 
 import { useEffect, useState } from "react"
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import Header from "@/components/Header"
-import { branches, semesters, semSubjects, subjectCodeMap } from "@/common/data"
+import { branches, semesters, semSubjects, subjectCodeMap, getSubjects, getSubjectCode } from "@/common/data"
 import { useSelector } from "react-redux"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
@@ -52,7 +52,7 @@ export default function FileUpload() {
 
     useEffect(() => {
         const { branch, semester, subjectName } = metadata;
-        const code = subjectCodeMap?.[branch]?.[semester]?.[subjectName] || "";
+        const code = getSubjectCode(branch, semester, subjectName) || "";
         setMetadata(prev => ({ ...prev, subjectCode: code }));
     }, [metadata.branch, metadata.semester, metadata.subjectName]);
 
@@ -88,16 +88,16 @@ export default function FileUpload() {
                     method: "POST",
                     body: data
                 });
-                
+
                 if (!res.ok) {
                     const errorText = await res.text();
                     console.error('Cloudinary upload failed:', errorText);
                     throw new Error(`Cloudinary upload failed: ${res.status}`);
                 }
-                
+
                 const datas = await res.json();
                 console.log('Cloudinary upload success:', datas);
-                
+
                 uploadedUrls.push({
                     public_id: datas.public_id,
                     secure_url: datas.secure_url,
@@ -247,7 +247,7 @@ export default function FileUpload() {
                                     <SelectContent className="bg-slate-800 border-slate-700 text-white rounded-xl">
                                         {metadata.branch &&
                                             metadata.semester &&
-                                            semSubjects?.[metadata.branch]?.[metadata.semester]?.map((subject, i) => (
+                                            getSubjects(metadata.branch, metadata.semester).map((subject, i) => (
                                                 <SelectItem key={i} value={subject} className="focus:bg-slate-700">
                                                     {subject}
                                                 </SelectItem>

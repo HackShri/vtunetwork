@@ -1,13 +1,44 @@
 import { Link, useNavigate } from "react-router-dom"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Cloud, Eye, Share2, Download, FileText, Github, Linkedin, Twitter, Mail } from "lucide-react"
+import { FileText, Github, Linkedin, Twitter, Mail, ChevronDown } from "lucide-react"
 import Header from "@/components/Header"
 import { useSelector } from "react-redux"
+import { useEffect, useMemo, useState } from "react"
+import { Button } from "@/components/ui/button"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { branches as allBranches, semSubjects, subjects, semesters, getSubjects, getSubjectCode } from "@/common/data"
 
 export default function HomePage() {
     const navigate = useNavigate()
     const user = useSelector(state => state)
     console.log(user)
+
+    // Slides content for hero
+    const slides = useMemo(() => ([
+        { title: "Welcome to VTU Network", subtitle: "Connect with students on WhatsApp and Telegram" },
+        { title: "All Your Notes At One Place", subtitle: "Semester notes, lab manuals and previous papers" },
+        { title: "Study Smarter Together", subtitle: "Join the community and start learning now" },
+    ]), [])
+    const [active, setActive] = useState(0)
+    useEffect(() => {
+        const id = setInterval(() => setActive((p) => (p + 1) % slides.length), 3500)
+        return () => clearInterval(id)
+    }, [slides.length])
+
+    // Dropdown filters
+    const [selectedBranch, setSelectedBranch] = useState(allBranches?.[0]?.id || "cse")
+    const semKey = "Sem 1"
+    const subjectCodes = useMemo(() => {
+        const codes = semSubjects?.[selectedBranch]?.[semKey]
+        return Array.isArray(codes) ? codes : []
+    }, [selectedBranch])
     return (
         <div className="flex flex-col min-h-screen bg-gray-900">
             {/* Fixed Header */}
@@ -41,37 +72,109 @@ export default function HomePage() {
                 </div>
             </header> */}
 
-            {/* Hero Section */}
-            <section
-                id="home"
-                className="w-full h-[71vh] pt-24 pb-12 md:pt-32 md:pb-24 lg:pb-32 bg-gradient-to-b from-gray-900 to-gray-800"
-            >
-                <div className="container px-4 md:px-6 mx-auto">
-                    <div className="flex flex-col items-center space-y-8 text-center">
-                        <div className="space-y-4">
-                            <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-white">
-                                Welcome to <h1 className="inline bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> VTU Network </h1>
-                                <span className="text-orange-500"> </span>
-                            </h1>
-                            <p className="mx-auto max-w-[700px] text-gray-300 text-lg md:text-xl">
-                                A student portal for semester notes, previous papers, and more. Your one-stop destination for VTU academic resources.
-
-
-                            </p>
+            {/* Hero Section - Auto sliding like Netflix */}
+            <section id="home" className="w-full pt-20 md:pt-28 bg-gray-900">
+                <div className="relative w-full h-[40vh] overflow-hidden">
+                    {slides.map((s, idx) => (
+                        <div key={idx} className={`absolute inset-0 transition-opacity duration-700 ${active === idx ? 'opacity-100' : 'opacity-0'}`}>
+                            <div className="h-full w-full bg-gray-900 flex items:center justify-center text-center px-6">
+                                <div>
+                                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white">{s.title}</h1>
+                                    <p className="mt-4 max-w-2xl mx-auto text-gray-300 text-lg md:text-xl">{s.subtitle}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <button onClick={() => navigate('/notes')} className="inline-flex h-12 items-center justify-center rounded-lg bg-[#1D4ED8] px-8 text-sm font-medium text-white shadow-lg transition-all hover:bg-white hover:text-black hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
-                                Get Started
-                            </button>
-
-                        </div>
+                    ))}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                        {slides.map((_, i) => (
+                            <button key={i} onClick={() => setActive(i)} className={`h-2 w-8 rounded-full ${active === i ? 'bg-white' : 'bg-white/40'}`} aria-label={`slide-${i}`} />
+                        ))}
                     </div>
                 </div>
+
+                {/* Control bar moved outside gray hero */}
             </section>
+
+            {/* Control bar under hero (outside gray background) */}
+            <div className="container px-4 md:px-6 mx-auto mt-4 pb-8">
+                <div className="flex flex-wrap gap-4">
+                    {/* Connect */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button className="bg-white text-black hover:bg-gray-200">Connect <ChevronDown className="ml-2 h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-gray-900 text-white border border-gray-700">
+                            <DropdownMenuLabel>Join our channels</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => window.open('https://whatsapp.com', '_blank')}>WhatsApp Channel</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => window.open('https://t.me', '_blank')}>Telegram</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Branch */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button className="bg-white text-black hover:bg-gray-200">Branch: {allBranches.find(b => b.id === selectedBranch)?.name?.split(' ')[0] || selectedBranch.toUpperCase()} <ChevronDown className="ml-2 h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-gray-900 text-white border border-gray-700">
+                            {allBranches.map((b) => (
+                                <DropdownMenuItem key={b.id} onClick={() => setSelectedBranch(b.id)}>{b.name}</DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Notes categories */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button className="bg-white text-black hover:bg-gray-200">Notes <ChevronDown className="ml-2 h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-gray-900 text-white border border-gray-700">
+                            <DropdownMenuItem onClick={() => navigate('/notes')}>Notes</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate('/notes')}>Lab Notes</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate('/notes')}>Question Papers</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
 
             {/* Features Section */}
             <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-gray-800">
                 <div className="container px-4 md:px-6 mx-auto">
+                    {/* Netflix-style horizontal sliders for each semester */}
+                    {semesters.map((sem) => {
+                        const semKeyLocal = sem
+                        const codes = semSubjects?.[selectedBranch]?.[semKeyLocal] || []
+                        const names = getSubjects(selectedBranch, semKeyLocal)
+                        // Pair names with codes by index when possible
+                        const items = (names.length ? names : codes).map((nameOrCode, idx) => {
+                            const subjectName = names[idx] || nameOrCode
+                            const code = codes[idx] || nameOrCode
+                            return { subjectName, code }
+                        })
+                        return (
+                            <div key={semKeyLocal} className="mb-10">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-2xl md:text-3xl font-bold text-white">{semKeyLocal.toUpperCase()}</h3>
+                                    <button onClick={() => navigate(`/notes?branch=${selectedBranch}&semester=${encodeURIComponent(semKeyLocal)}`)} className="text-sm text-gray-300 hover:text-white">View All</button>
+                                </div>
+                                <div className="relative">
+                                    <div className="flex overflow-x-auto no-scrollbar gap-4 pb-2">
+                                        {items.map(({ subjectName, code }) => (
+                                            <button
+                                                key={code + subjectName}
+                                                onClick={() => navigate(`/notes?branch=${selectedBranch}&semester=${encodeURIComponent(semKeyLocal)}&subject=${encodeURIComponent(subjectName)}`)}
+                                                className="min-w-[220px] md:min-w-[260px] lg:min-w-[300px] rounded-xl border border-gray-700 bg-gray-900 px-6 py-8 text-left hover:bg-gray-800 hover:border-gray-600 transition-all"
+                                            >
+                                                <div className="text-xl md:text-2xl font-extrabold text-white tracking-wide">{code}</div>
+                                                <div className="mt-2 text-sm md:text-base text-gray-300 line-clamp-2">{subjectName}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    })}
+
                     <div className="flex flex-col items-center space-y-4 text-center mb-12">
                         <h2 className="text-2xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white">
                             Everything You Need for Academic Success

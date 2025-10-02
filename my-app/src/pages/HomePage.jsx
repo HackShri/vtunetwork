@@ -101,6 +101,32 @@ export default function HomePage() {
 
             {/* Features Section */}
             <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-gray-800">
+                <div className="flex flex-col items-center space-y-4 text-center mb-12">
+                    <h2 className="text-2xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white">
+                        Everything You Need for Academic Success
+
+                    </h2>
+                    <p className="mx-auto max-w-[700px] text-gray-300 md:text-xl">
+                        Discover a comprehensive collection of resources designed to help VTU students excel in their studies.
+
+                    </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {features.map((feature, index) => (
+                        <div
+                            key={index}
+                            className="group relative overflow-hidden rounded-xl border border-gray-700 bg-gray-900 p-6 shadow-lg transition-all hover:shadow-xl hover:border-gray-600 hover:bg-gray-800"
+                        >
+                            <div className="flex flex-col items-center space-y-4 text-center">
+                                <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-orange-500/10 text-orange-500">
+                                    {feature.icon}
+                                </div>
+                                <h3 className="text-xl font-bold text-white">{feature.title}</h3>
+                                <p className="text-sm text-gray-400">{feature.description}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
                 <div className="container px-4 md:px-6 mx-auto mt-4 pb-8">
                     <div className="flex flex-wrap gap-4">
                         {/* Connect */}
@@ -163,32 +189,7 @@ export default function HomePage() {
                         );
                     })}
 
-                    <div className="flex flex-col items-center space-y-4 text-center mb-12">
-                        <h2 className="text-2xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white">
-                            Everything You Need for Academic Success
 
-                        </h2>
-                        <p className="mx-auto max-w-[700px] text-gray-300 md:text-xl">
-                            Discover a comprehensive collection of resources designed to help VTU students excel in their studies.
-
-                        </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {features.map((feature, index) => (
-                            <div
-                                key={index}
-                                className="group relative overflow-hidden rounded-xl border border-gray-700 bg-gray-900 p-6 shadow-lg transition-all hover:shadow-xl hover:border-gray-600 hover:bg-gray-800"
-                            >
-                                <div className="flex flex-col items-center space-y-4 text-center">
-                                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-orange-500/10 text-orange-500">
-                                        {feature.icon}
-                                    </div>
-                                    <h3 className="text-xl font-bold text-white">{feature.title}</h3>
-                                    <p className="text-sm text-gray-400">{feature.description}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </section>
 

@@ -70,3 +70,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+      display: none;
+  }
+ /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+  }
+}
+
+@layer utilities {
+  .card-spotlight:hover {
+    --spotlight-size: 250px; /* control the size of the glow */
+    background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(148, 163, 184, 0.08), transparent var(--spotlight-size));
+  }
+}

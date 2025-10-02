@@ -5,6 +5,7 @@ import Header from "@/components/Header"
 import { useSelector } from "react-redux"
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
+import SubjectSlider from '@/components/SubjectSlider';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -152,27 +153,13 @@ export default function HomePage() {
                             return { subjectName, code }
                         })
                         return (
-                            <div key={semKeyLocal} className="mb-10">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-2xl md:text-3xl font-bold text-white">{semKeyLocal.toUpperCase()}</h3>
-                                    <button onClick={() => navigate(`/notes?branch=${selectedBranch}&semester=${encodeURIComponent(semKeyLocal)}`)} className="text-sm text-gray-300 hover:text-white">View All</button>
-                                </div>
-                                <div className="relative">
-                                    <div className="flex overflow-x-auto no-scrollbar gap-4 pb-2">
-                                        {items.map(({ subjectName, code }) => (
-                                            <button
-                                                key={code + subjectName}
-                                                onClick={() => navigate(`/notes?branch=${selectedBranch}&semester=${encodeURIComponent(semKeyLocal)}&subject=${encodeURIComponent(subjectName)}`)}
-                                                className="min-w-[220px] md:min-w-[260px] lg:min-w-[300px] rounded-xl border border-gray-700 bg-gray-900 px-6 py-8 text-left hover:bg-gray-800 hover:border-gray-600 transition-all"
-                                            >
-                                                <div className="text-xl md:text-2xl font-extrabold text-white tracking-wide">{code}</div>
-                                                <div className="mt-2 text-sm md:text-base text-gray-300 line-clamp-2">{subjectName}</div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )
+                            <SubjectSlider 
+                                key={semKeyLocal}
+                                semester={semKeyLocal}
+                                items={items}
+                                selectedBranch={selectedBranch}
+                            />
+                        );
                     })}
 
                     <div className="flex flex-col items-center space-y-4 text-center mb-12">

@@ -97,49 +97,50 @@ export default function HomePage() {
             </section>
 
             {/* Control bar under hero (outside gray background) */}
-            <div className="container px-4 md:px-6 mx-auto mt-4 pb-8">
-                <div className="flex flex-wrap gap-4">
-                    {/* Connect */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button className="bg-white text-black hover:bg-gray-200">Connect <ChevronDown className="ml-2 h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-gray-900 text-white border border-gray-700">
-                            <DropdownMenuLabel>Join our channels</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => window.open('https://whatsapp.com', '_blank')}>WhatsApp Channel</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => window.open('https://t.me', '_blank')}>Telegram</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
 
-                    {/* Branch */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button className="bg-white text-black hover:bg-gray-200">Branch: {allBranches.find(b => b.id === selectedBranch)?.name?.split(' ')[0] || selectedBranch.toUpperCase()} <ChevronDown className="ml-2 h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-gray-900 text-white border border-gray-700">
-                            {allBranches.map((b) => (
-                                <DropdownMenuItem key={b.id} onClick={() => setSelectedBranch(b.id)}>{b.name}</DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {/* Notes categories */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button className="bg-white text-black hover:bg-gray-200">Notes <ChevronDown className="ml-2 h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-gray-900 text-white border border-gray-700">
-                            <DropdownMenuItem onClick={() => navigate('/notes')}>Notes</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate('/notes')}>Lab Notes</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate('/notes')}>Question Papers</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </div>
 
             {/* Features Section */}
             <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-gray-800">
+                <div className="container px-4 md:px-6 mx-auto mt-4 pb-8">
+                    <div className="flex flex-wrap gap-4">
+                        {/* Connect */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button className="bg-white text-black hover:bg-gray-200">Connect <ChevronDown className="ml-2 h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-gray-900 text-white border border-gray-700">
+                                <DropdownMenuLabel>Join our channels</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => window.open('https://whatsapp.com', '_blank')}>WhatsApp Channel</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.open('https://t.me', '_blank')}>Telegram</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Branch */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button className="bg-white text-black hover:bg-gray-200">Branch: {allBranches.find(b => b.id === selectedBranch)?.name?.split(' ')[0] || selectedBranch.toUpperCase()} <ChevronDown className="ml-2 h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-gray-900 text-white border border-gray-700">
+                                {allBranches.map((b) => (
+                                    <DropdownMenuItem key={b.id} onClick={() => setSelectedBranch(b.id)}>{b.name}</DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Notes categories */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button className="bg-white text-black hover:bg-gray-200">Notes <ChevronDown className="ml-2 h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-gray-900 text-white border border-gray-700">
+                                <DropdownMenuItem onClick={() => navigate('/notes')}>Notes</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => navigate('/notes')}>Lab Notes</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => navigate('/notes')}>Question Papers</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </div>
                 <div className="container px-4 md:px-6 mx-auto">
                     {/* Netflix-style horizontal sliders for each semester */}
                     {semesters.map((sem) => {
@@ -153,7 +154,7 @@ export default function HomePage() {
                             return { subjectName, code }
                         })
                         return (
-                            <SubjectSlider 
+                            <SubjectSlider
                                 key={semKeyLocal}
                                 semester={semKeyLocal}
                                 items={items}

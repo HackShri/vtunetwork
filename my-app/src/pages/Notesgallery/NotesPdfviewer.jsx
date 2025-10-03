@@ -28,7 +28,8 @@ export default function NotesPage() {
         const query = new URLSearchParams({
             branch: filters.branch || '',
             semester: filters.semester || '',
-            subject: filters.subject || ''
+            subject: filters.subject || '',
+            subjectCode: filters.subjectCode || ''
         })
         async function fetchthedata() {
             let response = await fetch(`${API_BASE}/api/user/fetchPdfs?${query}`)
@@ -80,12 +81,14 @@ export default function NotesPage() {
     const hasActiveFilters = Object.values(filters).some((filter) => filter !== "")
 
     const handleProfileSubmit = () => {
-        if (userProfile.branch && userProfile.semester) {
+        if (userProfile.branch && userProfile.semester && userProfile.subject && userProfile.subjectCode) {
             // Set default filters based on user profile
             setFilters((prev) => ({
                 ...prev,
                 branch: userProfile.branch,
                 semester: userProfile.semester,
+                subject: userProfile.subject,
+                subjectCode: userProfile.subjectCode
             }))
             setShowProfileDialog(false)
         }
@@ -94,7 +97,7 @@ export default function NotesPage() {
     const handleProfileChange = (key, value) => {
         setUserProfile((prev) => ({ ...prev, [key]: value }))
     }
-    console.log(mockNotes)
+    //console.log(mockNotes)
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -242,7 +245,10 @@ export default function NotesPage() {
                                         <SelectContent className="bg-slate-800 border-slate-700 text-white">
                                             {filters.branch &&
                                                 filters.semester &&
-                                                getSubjects(filters.branch, filters.semester).map((subject) => (
+                                                filters.subject &&
+                                                filters.subject &&
+
+                                                getSubjects(filters.branch, filters.semester, filters.branch, filters.subjectCode).map((subject) => (
                                                     <SelectItem key={subject} value={subject}>
                                                         {subject}
                                                     </SelectItem>

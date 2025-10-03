@@ -80,14 +80,15 @@ export default function Pdfdisplay() {
     const [selectedBranch, setSelectedBranch] = useState("")
     const [selectedSemester, setSelectedSemester] = useState("")
     const [selectedSubject, setSelectedSubject] = useState("")
+    const [selectedSubjectCode, setSelectedSubjectCode] = useState("")
     const [filteredUserNotes, setfilteredUserNotes] = useState([])
     const notesRef = useRef()
     useEffect(() => {
         async function fetchQuerypdf() {
             try {
-                console.log(selectedBranch, selectedSemester, selectedSubject)
+                console.log(selectedBranch, selectedSemester, selectedSubject, selectedSubjectCode)
                 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-                let response = await fetch(`${API_BASE}/api/user/filter?branch=${selectedBranch}&semester=${selectedSemester}&subject=${selectedSubject}`)
+                let response = await fetch(`${API_BASE}/api/user/filter?branch=${selectedBranch}&semester=${selectedSemester}&subject=${selectedSubject}&subjectCode=${selectedSubjectCode}`)
                 let data = await response.json()
                 console.log(data)
             } catch (error) {
@@ -96,7 +97,7 @@ export default function Pdfdisplay() {
         }
         fetchQuerypdf()
 
-    }, [selectedBranch, selectedSemester, selectedSubject])
+    }, [selectedBranch, selectedSemester, selectedSubject, selectedSubjectCode])
     useEffect(() => {
         console.log('hello user bro ')
         dispatch(fetchUserPdfs()).then((result) => {

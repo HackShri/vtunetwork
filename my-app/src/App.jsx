@@ -34,19 +34,19 @@ function App() {
         <Route path='/success' element={<Successpage />} />
 
         {/* 🔐 Login/Register => Block if already logged in */}
-        
-          <Route path='/login' element={<LoginPage />} />
-          <Route path='/register' element={<Register />} />
-        
+
+        <Route path='/login' element={<LoginPage />} />
+        <Route path='/register' element={<Register />} />
+
 
         {/* 🔐 Protected Routes */}
-          <Route path='/adminnotes' element={<Adminnotes />} />
-          <Route path='/profile' element={<Profile />} />
-          <Route path='/notes' element={<NotesPage />} />
-          <Route path='/previewpath/:id' element={<PDFPreviewPage />} />
-          <Route path='/groupupload/:id' element={<PDFList />} />
-          <Route path='/uploads' element={<PDFUploadDialog />} />
-        
+        <Route path='/adminnotes' element={<Adminnotes />} />
+        <Route path='/profile' element={<Profile />} />
+        <Route path='/notes' element={<NotesPage />} />
+        <Route path='/previewpath/:id' element={<PDFPreviewPage />} />
+        <Route path='/groupupload/:id' element={<PDFList />} />
+        <Route path='/uploads' element={<PDFUploadDialog />} />
+
 
       </Routes>
     </div>

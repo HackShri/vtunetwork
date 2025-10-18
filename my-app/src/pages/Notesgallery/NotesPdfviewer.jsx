@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import Header from "@/components/Header"
 import { useNavigate, useLocation } from "react-router-dom"
-import { branches, semesters, subjects, getSubjects } from "@/common/data"
+import { branches, semesters, subjects, getSubjects, getSubjectCode } from "@/common/data"
 
 export default function NotesPage() {
     const navigate = useNavigate()
@@ -19,29 +19,64 @@ export default function NotesPage() {
         subject: "",
         subjectCode: "",
     })
+    const [loadingNotes, setLoadingNotes] = useState(false)
+    const [fetchError, setFetchError] = useState(null)
     const [currentPage, setCurrentPage] = useState(1)
     const [showFilters, setShowFilters] = useState(false)
     const [mockNotes, setmockNotes] = useState([])
 
+    // Debounced, abortable fetch when filters change. Only fetch when branch + semester are set.
     useEffect(() => {
-        console.log("It is doing the thing bro okay ")
-        const query = new URLSearchParams({
-            branch: filters.branch || '',
-            semester: filters.semester || '',
-            subject: filters.subject || '',
-            subjectCode: filters.subjectCode || ''
-        })
-        async function fetchthedata() {
-            let response = await fetch(`${API_BASE}/api/user/fetchPdfs?${query}`)
-            let data = await response.json()
+        let mounted = true
+        const controller = new AbortController()
 
-            if (data) {
-                setmockNotes(data?.data)
+        async function fetchthedata() {
+            setLoadingNotes(true)
+            setFetchError(null)
+            try {
+                const params = {
+                    branch: filters.branch || '',
+                    semester: filters.semester || '',
+                }
+                // include subject or subjectCode only if provided
+                if (filters.subjectCode) params.subjectCode = filters.subjectCode
+                else if (filters.subject) params.subject = filters.subject
+
+                const query = new URLSearchParams(params).toString()
+                const res = await fetch(`${API_BASE}/api/user/fetchPdfs?${query}`, { signal: controller.signal })
+                if (!res.ok) {
+                    const text = await res.text()
+                    throw new Error(`Server ${res.status}: ${text}`)
+                }
+                const data = await res.json()
+                if (!mounted) return
+                setmockNotes(Array.isArray(data?.data) ? data.data : [])
+            } catch (err) {
+                if (err.name === 'AbortError') return
+                console.error('Failed to fetch notes:', err)
+                setFetchError(err.message)
+                setmockNotes([])
+            } finally {
+                if (mounted) setLoadingNotes(false)
             }
         }
 
-        fetchthedata()
-    }, [filters])
+        const shouldFetch = filters.branch && filters.semester
+        if (shouldFetch) {
+            const id = setTimeout(fetchthedata, 150) // small debounce
+            return () => {
+                clearTimeout(id)
+                mounted = false
+                controller.abort()
+            }
+        } else {
+            // clear results when not enough filter context
+            setmockNotes([])
+            setLoadingNotes(false)
+            setFetchError(null)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.branch, filters.semester, filters.subject, filters.subjectCode])
 
     // Initialize filters from URL query params when arriving from homepage
     useEffect(() => {
@@ -69,7 +104,21 @@ export default function NotesPage() {
     const currentNotes = mockNotes?.slice(startIndex, startIndex + notesPerPage)
 
     const handleFilterChange = (key, value) => {
-        setFilters((prev) => ({ ...prev, [key]: value }))
+        setFilters((prev) => {
+            // When branch or semester changes, clear subject & subjectCode to avoid mismatches
+            if (key === 'branch') {
+                return { ...prev, branch: value, subject: '', subjectCode: '' }
+            }
+            if (key === 'semester') {
+                return { ...prev, semester: value, subject: '', subjectCode: '' }
+            }
+            if (key === 'subject') {
+                // Try to auto-fill subjectCode when possible
+                const subjectCode = getSubjectCode(prev.branch || filters.branch, value ? value : prev.subject ? prev.subject : '')
+                return { ...prev, subject: value, subjectCode: subjectCode || '' }
+            }
+            return { ...prev, [key]: value }
+        })
         setCurrentPage(1) // Reset to first page when filters change
     }
 
@@ -243,12 +292,8 @@ export default function NotesPage() {
                                             <SelectValue placeholder="Select" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                                            {filters.branch &&
-                                                filters.semester &&
-                                                filters.subject &&
-                                                filters.subject &&
-
-                                                getSubjects(filters.branch, filters.semester, filters.branch, filters.subjectCode).map((subject) => (
+                                            {filters.branch && filters.semester &&
+                                                getSubjects(filters.branch, filters.semester).map((subject) => (
                                                     <SelectItem key={subject} value={subject}>
                                                         {subject}
                                                     </SelectItem>

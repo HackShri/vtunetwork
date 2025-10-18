@@ -41,24 +41,35 @@ async function fileUpload(req, res) {
 }
 
 async function fileReturn(req, res) {
-  let { branch, semester, subject } = req.query;
+  // Accept flexible query params: subject, subjectName or subjectCode
+  let { branch, semester, subject, subjectName, subjectCode } = req.query;
   const filters = {};
   if (branch) filters.branch = branch;
   if (semester) filters.semester = semester;
-  if (subject) filters.subject = subject;
-  try {
-    let responses = await Upload.find(filters);
 
-    if (responses) {
-      return res.json({
-        data: responses,
-        message: 'Ther pdfs are successfully fetched',
-        success: true,
-      });
-    }
+  // Prefer explicit subjectCode, then subjectName, then try to guess from `subject`
+  if (subjectCode) {
+    filters.subjectCode = subjectCode;
+  } else if (subjectName) {
+    filters.subjectName = subjectName;
+  } else if (subject) {
+    // Heuristic: if looks like a code (letters+digits), treat as code, otherwise as name
+    const looksLikeCode = /^[A-Za-z]{2,}\d{2,}/.test(subject);
+    if (looksLikeCode) filters.subjectCode = subject;
+    else filters.subjectName = subject;
+  }
+
+  try {
+    const responses = await Upload.find(filters).lean();
+    // Always return an array (empty when nothing found)
+    return res.status(200).json({
+      data: Array.isArray(responses) ? responses : [],
+      message: 'The pdfs are successfully fetched',
+      success: true,
+    });
   } catch (error) {
-    console.log(error.message);
-    return res.status(504).json({
+    console.error('fileReturn error:', error.message);
+    return res.status(500).json({
       success: false,
       message: 'There is internal Server Error',
       error: error.message,
@@ -67,10 +78,10 @@ async function fileReturn(req, res) {
 }
 async function fetchSinglepdf(req, res) {
   let { id } = req.params;
-  
+
   try {
     let responses = await Upload.find({ _id: id });
-    
+
     if (responses && responses.length > 0) {
       return res.json({
         data: responses,
@@ -94,29 +105,34 @@ async function fetchSinglepdf(req, res) {
 }
 
 async function filterPdfs(req, res) {
-  let { semester, branch, subject } = req.query;
-
+  // Backwards-compatible filter: accept subjectName / subjectCode / subject
+  let { semester, branch, subject, subjectName, subjectCode } = req.query;
   const filter = {};
   if (semester) filter.semester = semester;
   if (branch) filter.branch = branch;
-  if (subject) filter.subject = subject;
+
+  if (subjectCode) filter.subjectCode = subjectCode;
+  else if (subjectName) filter.subjectName = subjectName;
+  else if (subject) {
+    const looksLikeCode = /^[A-Za-z]{2,}\d{2,}/.test(subject);
+    if (looksLikeCode) filter.subjectCode = subject;
+    else filter.subjectName = subject;
+  }
 
   try {
-    let data = await Upload.find(filter);
-    if (data) {
-      return res.status(202).json({
-        data,
-        success: true,
-        message: 'The elements are fetched based on the filter',
-      });
-    } else {
-      return res.status(404).json({
-        success: false,
-        message: 'There is something wrong in this ',
-      });
-    }
+    const data = await Upload.find(filter).lean();
+    return res.status(200).json({
+      data: Array.isArray(data) ? data : [],
+      success: true,
+      message: 'The elements are fetched based on the filter',
+    });
   } catch (error) {
-    console.log(error.message);
+    console.error('filterPdfs error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
   }
 }
 

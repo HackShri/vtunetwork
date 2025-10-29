@@ -6,6 +6,7 @@ export const fetchUserPdfs = createAsyncThunk('fetchuserPdfs', async () => {
         const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
         let response = await fetch(`${API_BASE}/api/user/fetchPdfs`)
         let data = await response.json()
+        if (setFilters.type) useParams.append("type", setFilters.type)
         console.log(data)
 
         return data

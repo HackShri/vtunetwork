@@ -31,7 +31,8 @@ export default function FileUpload() {
         subjectName: "",
         description: "",
         tags: "",
-        subjectCode: ''
+        subjectCode: '',
+        type: ""
     }
     const [metadata, setMetadata] = useState(initialState)
 
@@ -201,6 +202,23 @@ export default function FileUpload() {
                                     className="w-full border border-slate-600/50 p-3 rounded-xl bg-slate-700/50 text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 outline-none"
                                 />
                             </div>
+                            {/* type */}
+                            <div>
+                                <label className="text-sm font-medium text-slate-200 mb-2 block">File Type</label>
+                                <Select
+                                    onValueChange={(val) => setMetadata((prev) => ({ ...prev, type: val }))} // ✅ fixed
+                                    value={metadata.type}
+                                >
+                                    <SelectTrigger className="bg-slate-700/50 border-slate-600/50 text-white h-10">
+                                        <SelectValue placeholder="Select file type" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                                        <SelectItem value="notes">Notes</SelectItem>
+                                        <SelectItem value="questionpaper">Question Paper</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
 
                             {/* Branch */}
                             <div>

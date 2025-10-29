@@ -67,10 +67,12 @@ const AuthRoute = require('./routes/authRoute.js');
 const googleStrategy = require('./routes/googleStrategy.js');
 const fileuploadRoute = require('./routes/fileUpload.js');
 const reviewRoute = require('./routes/reviewRoute.js');
+const papersRoute = require('./routes/papers.js');
 app.use('/api/user', AuthRoute);
 app.use('/api/user', googleStrategy);
 app.use('/api/user', fileuploadRoute);
 app.use('/api/user', reviewRoute);
+app.use('/api/user', papersRoute);
 
 // Start server
 app.listen(PORT, () => {

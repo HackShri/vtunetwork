@@ -1,40 +1,23 @@
-import { Item } from "@radix-ui/react-accordion";
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { LoaderIcon } from "lucide-react";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+export const fetchQPs = createAsyncThunk("questionPapers/fetch", async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.branch) params.append("branch", filters.branch);
+    if (filters.semester) params.append("semester", filters.semester);
+    if (filters.subject) params.append("subjectName", filters.subject);
+    if (filters.subjectCode) params.append("subjectCode", filters.subjectCode);
 
-export const fetchQuestionPapers = createAsyncThunk(
-    "questionPapers/fetchQuestionPapers",
-    async (filters = {}, { rejectWithValue }) => {
-        try {
-            const params = new URLSearchParams();
-            if (filters.branch) params.append("branch", filters.branch);
-            if (filters.semester) params.append("semester", filters.semester);
-            if (filters.subjectCode) params.append("subjectCode", filters.subjectCode);
-            else if (filters.subject) params.append("subject", filters.subject);
-
-            const url = params.toString()
-                ? `${API_BASE}/api/user/fetchQPs?${params.toString()}`
-                : `${API_BASE}/api/user/fetchQPs`;
-
-            const res = await fetch(url);
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(`Server ${res.status}: ${text}`);
-            }
-            const data = await res.json();
-        } catch (err) {
-            return rejectWithValue(err.message);
-
-        }
-    }
-);
+    // Use the new papers/filter endpoint
+    const res = await fetch(`${API_BASE}/api/user/papers/filter?${params}`);
+    const data = await res.json();
+    return data;
+});
 
 const questionPapersSlice = createSlice({
     name: "questionPapers",
     initialState: {
-        items: [],
+        papers: [],
         loading: false,
         error: null,
         filters: {
@@ -42,26 +25,27 @@ const questionPapersSlice = createSlice({
             semester: "",
             subject: "",
             subjectCode: "",
+            type: "questionpaper"
         },
     },
     reducers: {
-        setFilters: (state, action) => {
+        setFilters(state, action) {
             state.filters = { ...state.filters, ...action.payload };
         },
-        clearFilters: (state) => {
+        clearFilters(state) {
             state.filters = { branch: "", semester: "", subject: "", subjectCode: "" };
         },
     },
     extraReducers: (builder) => {
         builder
-            .addCase(fetchQuestionPapers.pending, (state) => {
-                state.loading = true:
-                state.error = null;
-            })
-            .addCase(fetchQuestionPapers.rejected, (state, action) => {
+            .addCase(fetchQPs.pending, (state) => { state.loading = true; })
+            .addCase(fetchQPs.fulfilled, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
-                state.items = []
+                state.papers = action.payload;
+            })
+            .addCase(fetchQPs.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message;
             });
     },
 });

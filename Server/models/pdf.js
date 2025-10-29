@@ -28,6 +28,7 @@ const uploadSchema = new mongoose.Schema(
     uploadDate: { type: Date, default: Date.now },
     tags: { type: [String], default: [] },
     fileType: { type: String, default: 'pdf' },
+    type: { type: String, enum: ['questionpaper', 'notes'], default: 'notes' },
     isApproved: { type: Boolean, default: false },
     isPublic: { type: Boolean, default: true },
     rating: { type: Number, default: 0 },

@@ -35,6 +35,7 @@ export default function HomePage() {
 
     // Dropdown filters
     const [selectedBranch, setSelectedBranch] = useState(allBranches?.[0]?.id || "cse")
+    const [selectedType, setSelectedType] = useState("notes")
     const semKey = "Sem 1"
     const subjectCodes = useMemo(() => {
         const codes = semSubjects?.[selectedBranch]?.[semKey]
@@ -161,12 +162,14 @@ export default function HomePage() {
                         {/* Notes categories */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button className="bg-white text-black hover:bg-gray-200">Notes <ChevronDown className="ml-2 h-4 w-4" /></Button>
+                                <Button className="bg-white text-black hover:bg-gray-200">
+                                    {selectedType === "notes" ? "Notes" : "Question Papers"}
+                                    <ChevronDown className="ml-2 h-4 w-4" />
+                                </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="bg-gray-900 text-white border border-gray-700">
-                                <DropdownMenuItem onClick={() => navigate('/notes')}>Notes</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => navigate('/notes')}>Lab Notes</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => navigate('/notes')}>Question Papers</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedType("notes")}>Notes</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedType("questionpaper")}>Question Papers</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -189,6 +192,7 @@ export default function HomePage() {
                                 semester={semKeyLocal}
                                 items={items}
                                 selectedBranch={selectedBranch}
+                                selectedType={selectedType}
                             />
                         );
                     })}

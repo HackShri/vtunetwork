@@ -41,22 +41,26 @@ async function fileUpload(req, res) {
 }
 
 async function fileReturn(req, res) {
-  // Accept flexible query params: subject, subjectName or subjectCode
-  let { branch, semester, subject, subjectName, subjectCode } = req.query;
+  // Get all query parameters
+  let { branch, semester, subject, subjectName, subjectCode, type } = req.query;
   const filters = {};
+
+  // Add basic filters
   if (branch) filters.branch = branch;
   if (semester) filters.semester = semester;
-
-  // Prefer explicit subjectCode, then subjectName, then try to guess from `subject`
+  if (type) filters.type = type; // 'questionpaper' or 'notes'  // Handle subject filtering with priority
   if (subjectCode) {
     filters.subjectCode = subjectCode;
   } else if (subjectName) {
     filters.subjectName = subjectName;
   } else if (subject) {
-    // Heuristic: if looks like a code (letters+digits), treat as code, otherwise as name
+    // If subject is provided, check if it looks like a code
     const looksLikeCode = /^[A-Za-z]{2,}\d{2,}/.test(subject);
-    if (looksLikeCode) filters.subjectCode = subject;
-    else filters.subjectName = subject;
+    if (looksLikeCode) {
+      filters.subjectCode = subject;
+    } else {
+      filters.subjectName = subject;
+    }
   }
 
   try {

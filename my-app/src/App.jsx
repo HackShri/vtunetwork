@@ -43,6 +43,7 @@ function App() {
         <Route path='/adminnotes' element={<Adminnotes />} />
         <Route path='/profile' element={<Profile />} />
         <Route path='/notes' element={<NotesPage />} />
+        <Route path='/papers' element={<QuestionPapersPage />} />
         <Route path='/previewpath/:id' element={<PDFPreviewPage />} />
         <Route path='/groupupload/:id' element={<PDFList />} />
         <Route path='/uploads' element={<PDFUploadDialog />} />

@@ -80,7 +80,7 @@ function Header() {
                     <ul className="space-y-4">
                       <li><a href="#" className="text-lg hover:underline">Home</a></li>
                       <li><a href="/notes" className="text-lg hover:underline">Notes </a></li>
-                      <li><a href="#" className="text-lg hover:underline">Previous Papers</a></li>
+                      <li><a href="/papers" className="text-lg hover:underline">Previous Papers</a></li>
                       <li><a href="#" className="text-lg hover:underline">Contact</a></li>
                     </ul>
                   </nav>

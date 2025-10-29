@@ -25,7 +25,43 @@ export default function NotesPage() {
     const [showFilters, setShowFilters] = useState(false)
     const [mockNotes, setmockNotes] = useState([])
 
-    // Debounced, abortable fetch when filters change. Only fetch when branch + semester are set.
+    // Fetch all notes on mount so Notes page shows available files by default.
+    useEffect(() => {
+        let mounted = true
+        const controller = new AbortController()
+
+        async function fetchAll() {
+            setLoadingNotes(true)
+            setFetchError(null)
+            try {
+                const res = await fetch(`${API_BASE}/api/user/fetchPdfs`, { signal: controller.signal })
+                if (!res.ok) {
+                    const txt = await res.text()
+                    throw new Error(`Server ${res.status}: ${txt}`)
+                }
+                const data = await res.json()
+                if (!mounted) return
+                setmockNotes(Array.isArray(data?.data) ? data.data : [])
+            } catch (err) {
+                if (err.name === 'AbortError') return
+                console.error('Failed to fetch all notes:', err)
+                setFetchError(err.message)
+                setmockNotes([])
+            } finally {
+                if (mounted) setLoadingNotes(false)
+            }
+        }
+
+        fetchAll()
+
+        return () => {
+            mounted = false
+            controller.abort()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    // Debounced, abortable fetch when filters change. Fetch when any filter is provided
     useEffect(() => {
         let mounted = true
         const controller = new AbortController()
@@ -34,16 +70,15 @@ export default function NotesPage() {
             setLoadingNotes(true)
             setFetchError(null)
             try {
-                const params = {
-                    branch: filters.branch || '',
-                    semester: filters.semester || '',
-                }
-                // include subject or subjectCode only if provided
+                const params = {}
+                if (filters.branch) params.branch = filters.branch
+                if (filters.semester) params.semester = filters.semester
                 if (filters.subjectCode) params.subjectCode = filters.subjectCode
                 else if (filters.subject) params.subject = filters.subject
 
                 const query = new URLSearchParams(params).toString()
-                const res = await fetch(`${API_BASE}/api/user/fetchPdfs?${query}`, { signal: controller.signal })
+                const url = query ? `${API_BASE}/api/user/fetchPdfs?${query}` : `${API_BASE}/api/user/fetchPdfs`
+                const res = await fetch(url, { signal: controller.signal })
                 if (!res.ok) {
                     const text = await res.text()
                     throw new Error(`Server ${res.status}: ${text}`)
@@ -53,7 +88,7 @@ export default function NotesPage() {
                 setmockNotes(Array.isArray(data?.data) ? data.data : [])
             } catch (err) {
                 if (err.name === 'AbortError') return
-                console.error('Failed to fetch notes:', err)
+                console.error('Failed to fetch notes (filters):', err)
                 setFetchError(err.message)
                 setmockNotes([])
             } finally {
@@ -61,19 +96,15 @@ export default function NotesPage() {
             }
         }
 
-        const shouldFetch = filters.branch && filters.semester
-        if (shouldFetch) {
-            const id = setTimeout(fetchthedata, 150) // small debounce
+        const hasAnyFilter = filters.branch || filters.semester || filters.subject || filters.subjectCode
+        // debounce only when filters exist (avoid double fetch on mount)
+        if (hasAnyFilter) {
+            const id = setTimeout(fetchthedata, 150)
             return () => {
                 clearTimeout(id)
                 mounted = false
                 controller.abort()
             }
-        } else {
-            // clear results when not enough filter context
-            setmockNotes([])
-            setLoadingNotes(false)
-            setFetchError(null)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters.branch, filters.semester, filters.subject, filters.subjectCode])

@@ -25,7 +25,7 @@ app.use(
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      
+
       if (FRONTEND_ORIGINS.includes(origin)) {
         return callback(null, true);
       } else {
@@ -85,9 +85,9 @@ app.listen(PORT, () => {
 //     res.json({ success: true, user: req.user });
 // });
 
-// // Logout
-// app.get('/logout', (req, res) => {
-//     req.logout(() => {
-//         res.redirect('/');
-//     });
-// });
+// Logout
+app.get('/logout', (req, res) => {
+  req.logout(() => {
+    res.redirect('/');
+  });
+});

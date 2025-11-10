@@ -17,7 +17,7 @@ export default function QuestionPapersPage() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { items: papers = [], loading, error, filters } = useSelector(
+    const { papers = [], loading, error, filters } = useSelector(
         (state) => state.questionPapers
     );
 
@@ -42,6 +42,7 @@ export default function QuestionPapersPage() {
         const subject = params.get("subject") || "";
         const subjectCode = params.get("subjectCode") || "";
         const type = "questionpaper";
+        if (filters.type) params.append("type", filters.type)
         if (branch || semester || subject || subjectCode) {
             dispatch(setFilters({ branch, semester, subject, subjectCode, type }));
         } else {

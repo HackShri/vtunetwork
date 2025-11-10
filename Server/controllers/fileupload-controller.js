@@ -6,6 +6,7 @@ async function fileUpload(req, res) {
     branch,
     semester,
     title,
+    type,
     tags,
     description,
     uploaderEmail,
@@ -13,6 +14,7 @@ async function fileUpload(req, res) {
     subjectCode,
     subjectName,
   } = req.body;
+  if (!req.body.type) req.body.type = 'notes';
 
   try {
     let userUpload = await Upload.create({
@@ -20,6 +22,7 @@ async function fileUpload(req, res) {
       branch: branch,
       semester: semester,
       title: title,
+      type: req.body.type || 'notes',
       description: description,
       uploaderEmail: uploaderEmail,
       uploaderName: uploaderName,

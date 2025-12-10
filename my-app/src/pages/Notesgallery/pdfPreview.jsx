@@ -1,4 +1,4 @@
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 "use client"
 import { useEffect, useState } from "react"
 import {
@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { StarRating } from "./pdfthings/Starrating"
 import { MoreNotesCard } from "./pdfthings/more_notes"
 import ReviewCard from "./pdfthings/review_card"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import Header from "@/components/Header"
 import { useSelector } from "react-redux"
 import { NoteCard } from "./Pdfdisplay"
@@ -52,6 +52,7 @@ const moreNotes = [
 export default function PDFPreviewPage() {
     const { toast } = useToast()
     const { id } = useParams()
+    const navigate = useNavigate()
     const user = useSelector(state => state?.Authproject)
     const [userRating, setUserRating] = useState(0)
     const [reviewDisplay, setreviewDisplay] = useState({
@@ -87,15 +88,15 @@ export default function PDFPreviewPage() {
                             'Content-Type': 'application/json'
                         }
                     })
-                    
+
                     if (!response.ok) {
                         const errorText = await response.text()
                         console.error('HTTP error response:', errorText)
                         throw new Error(`HTTP error! status: ${response.status}`)
                     }
-                    
+
                     let data = await response.json()
-                    
+
                     if (data && data.success && data.data && data.data.length > 0) {
                         setpdfs(data.data[0])
                     } else {
@@ -111,28 +112,37 @@ export default function PDFPreviewPage() {
     useEffect(() => {
         async function fetchreviews() {
             if (id) {
-                let reviews = await fetch(`${API_BASE}/api/user/fetchReview/` + id)
-                let reviewData = await reviews.json()
-                if (reviewData) {
-                    setReviews(reviewData?.data)
-                    const ratingData = reviewData?.data.map(item => item.rating)
-                    console.log(ratingData.length)
-                    const rating = ratingData.reduce((acc, item) => {
-                        acc += item
-                        console.log(acc)
-                        return acc
-
-                    }, 0)
-                    let data = {
-                        averageRating: rating / ratingData.length,
-                        totalRating: ratingData.length
+                try {
+                    const url = `${API_BASE}/api/user/reviews/fetchReview/` + id;
+                    console.log('Fetching reviews from:', url);
+                    let reviews = await fetch(url, {
+                        credentials: 'include'
+                    })
+                    console.log('Fetch reviews response status:', reviews.status);
+                    if (!reviews.ok) {
+                        const errorText = await reviews.text();
+                        console.error('Failed to fetch reviews:', reviews.status, errorText);
+                        return;
                     }
-                    setreviewDisplay(data)
+                    let reviewData = await reviews.json()
+                    console.log('Fetched review data:', reviewData);
+                    if (reviewData) {
+                        setReviews(reviewData?.data || [])
+                        const { avgRating, ratingsCount } = reviewData.aggregate || {}
+                        setreviewDisplay({
+                            averageRating: avgRating || 0,
+                            totalRating: ratingsCount || 0
+                        })
+                    }
+                } catch (error) {
+                    console.error('Error fetching reviews:', error);
                 }
+            } else {
+                console.warn('No id found in route params, cannot fetch reviews');
             }
         }
         fetchreviews()
-    }, [])
+    }, [id])
     async function handleOnEdit(review) {
         // If already editing this same review, toggle back to "Submit"
         if (options.name === 'Edit' && options.reviewId === review._id) {
@@ -151,125 +161,153 @@ export default function PDFPreviewPage() {
     }
     async function handleOnDelete(id) {
         try {
-            let response = await fetch(`${API_BASE}/api/user/deleteReview/` + id, {
-                method: 'DELETE'
+            let response = await fetch(`${API_BASE}/api/user/reviews/` + id, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             })
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Delete review error:', response.status, errorText);
+                throw new Error(`Failed to delete review: ${response.status}`);
+            }
             let data = await response.json()
             setReviews(prevReviews => prevReviews.filter(review => review._id !== id));
 
             toast({
                 title: "Review Deleted",
                 description: "Your review was successfully deleted.",
-
             })
 
         } catch (error) {
-            console.log(error.message);
+            console.error('Delete review error:', error.message);
+            toast({
+                variant: "destructive",
+                title: "Delete Failed",
+                description: error.message || "Failed to delete review.",
+            });
         }
     }
     const handleSubmitReview = async () => {
+        const userId = user?._id || user?.user?.userID;
 
-
-
+        // Normalize fetched review userId formats
         const alreadyReviewed = reviews.some(
-            (r) => r.user_id === (user?._id || user?.user?.userID)
-        )
+            (r) =>
+                r.userId === userId ||
+                r.user_id === userId ||
+                r.userId?._id === userId ||
+                r.userId?.toString() === userId
+        );
 
+        // Prevent duplicate review in create mode
         if (!options.reviewId && alreadyReviewed) {
             toast({
                 variant: "destructive",
                 title: "Already Reviewed",
                 description: "You've already submitted a review. You can edit it instead.",
-            })
-            return
+            });
+            return;
         }
 
-        if (options.name === 'Edit') {
+        // ----------------------- EDIT MODE -----------------------
+        if (options.name === "Edit") {
             try {
-                console.log('reviewID :', options.reviewId)
                 const payload = {
                     reviewId: options.reviewId,
                     content: reviewText,
                     rating: userRating,
-                    totalReview: 1
-                }
+                };
 
-                let response = await fetch(`${API_BASE}/api/user/reviewEdit`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                const response = await fetch(`${API_BASE}/api/user/reviews/reviewEdit`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
                     body: JSON.stringify(payload),
-                })
+                });
 
-                if (!response.ok) throw new Error("Failed to update review")
+                if (!response.ok) throw new Error("Failed to update review");
 
-                await response.json()
+                const updated = await response.json();
 
-                setReviews(prev =>
-                    prev.map(r => (r._id === options.reviewId ? { ...r, ...payload } : r))
-                )
+                setReviews((prev) =>
+                    prev.map((r) =>
+                        r._id === options.reviewId ? { ...r, ...updated.review } : r
+                    )
+                );
 
-                // ✅ Success toast for edit
                 toast({
                     title: "Review Updated",
                     description: "Your review was successfully edited.",
-                })
+                });
 
-                setoptions({ name: 'submit', reviewId: null })
-                setReviewText("")
-                setUserRating(0)
+                setoptions({ name: "submit", reviewId: null });
+                setReviewText("");
+                setUserRating(0);
             } catch (error) {
-                // ❌ Error toast for edit
                 toast({
                     variant: "destructive",
                     title: "Edit Failed",
-                    description: error.message || "Something went wrong while editing.",
-                })
+                    description: error.message || "Something went wrong.",
+                });
             }
-            return
+            return;
         }
 
-        // Regular Submit
-        if (reviewText.trim() && userRating > 0) {
-            const newReview = {
-                id: id,
-                user_id: user?._id || user?.user?.userID,
-                reviewerName: user?.user?.username || user.userLogin,
-                date: new Date().toLocaleDateString(),
+        // ----------------------- CREATE MODE -----------------------
+        try {
+            if (!id) {
+                throw new Error("Missing upload ID");
+            }
+
+            const payload = {
+                id, // Backend expects `id` in the payload
                 content: reviewText,
                 rating: userRating,
+            };
+
+            console.log('Submitting review with payload:', payload);
+            console.log('API endpoint:', `${API_BASE}/api/user/reviews`);
+
+            const response = await fetch(`${API_BASE}/api/user/reviews`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(payload),
+            });
+
+            console.log('Response status:', response.status, response.statusText);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Review submission error:', response.status, errorText);
+                throw new Error(`Review submission failed: ${response.status} - ${errorText}`);
             }
-            try {
-                let response = await fetch(`${API_BASE}/api/user/reviews`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(newReview),
-                })
 
+            const data = await response.json();
+            console.log('Review submission success:', data);
 
-                if (!response.ok) throw new Error("Failed to submit review")
+            setReviews((prev) => [data.review, ...prev]);
 
-                let data = await response.json()
-                setReviews([data.review, ...reviews])
+            toast({
+                title: "Review Submitted",
+                description: "Thanks for your feedback!",
+            });
 
-                // ✅ Success toast for new review
-                console.log(data, 'Hello bro what are you doing here : ')
-                toast({
-                    title: "Review Submitted",
-                    description: "Thanks for sharing your feedback!",
-                })
-
-                setReviewText("")
-                setUserRating(0)
-            } catch (error) {
-                // ❌ Error toast for new review
-                toast({
-                    variant: "destructive",
-                    title: "Submit Failed",
-                    description: error.message || "Could not submit your review.",
-                })
-            }
+            setReviewText("");
+            setUserRating(0);
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Submit Failed",
+                description: error.message || "Something went wrong.",
+            });
         }
-    }
+    };
+
+
 
     return (
         <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -405,7 +443,7 @@ export default function PDFPreviewPage() {
                                     disabled={!reviewText.trim() || userRating === 0}
                                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 rounded-xl"
                                 >
-                                    {options.name == 'submit' ? "Submit Review" : "Edit Review"}
+                                    {options.name === 'submit' ? "Submit Review" : "Edit Review"}
                                 </Button>
                             </div>
                         </div>

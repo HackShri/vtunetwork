@@ -1,16 +1,23 @@
+const express = require('express')
+const router = express.Router()
+const auth = require('../middleware/auth-middleware')
 const {
-  uploadReview,
-  fetchReviews,
-  editReview,
-  deleteReviews,
-} = require('../controllers/review-controller');
+    createReview,
+    fetchReviews,
+    editReview,
+    deleteReview
+} = require('../controllers/reviewsController')
 
-const express = require('express');
-const router = express.Router();
+// CREATE
+router.post('/', auth, createReview)
 
-router.post('/reviews', uploadReview);
-router.get('/fetchReview/:id', fetchReviews);
-router.delete('/deleteReview/:id', deleteReviews);
-router.put('/reviewEdit', editReview);
+// READ
+router.get('/fetchReview/:id', fetchReviews)
 
-module.exports = router;
+// EDIT
+router.put('/reviewEdit', auth, editReview)
+
+// DELETE
+router.delete('/:id', auth, deleteReview)
+
+module.exports = router

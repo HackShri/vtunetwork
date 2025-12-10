@@ -36,6 +36,8 @@ app.use(
     credentials: true,
   }),
 );
+const connectReviewsDB = require('./config/reviewsDb');
+connectReviewsDB().catch(err => console.error('reviews DB failed to connect', err));
 // Body parsers
 app.use(express.json());
 app.use(cookieParser());
@@ -66,12 +68,15 @@ app.use(passport.session());
 const AuthRoute = require('./routes/authRoute.js');
 const googleStrategy = require('./routes/googleStrategy.js');
 const fileuploadRoute = require('./routes/fileUpload.js');
-const reviewRoute = require('./routes/reviewRoute.js');
+const reviewRoutes = require('./routes/reviewRoute.js');
 const papersRoute = require('./routes/papers.js');
+// const reviewsRoutes = require('./routes/reviewRoute.js')
+
+// app.use('/api/user/reviews', reviewRoutes)
 app.use('/api/user', AuthRoute);
 app.use('/api/user', googleStrategy);
 app.use('/api/user', fileuploadRoute);
-app.use('/api/user', reviewRoute);
+app.use('/api/user/reviews', reviewRoutes);
 app.use('/api/user', papersRoute);
 
 // Start server

@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = (req, res, next) => {
-  // 1. Check if authenticated via Passport.js (optional)a
-
-  console.log(req.isAuthenticated());
+  // 1. Check if authenticated via Passport.js (optional)
+  console.log('Auth middleware - isAuthenticated:', req.isAuthenticated ? req.isAuthenticated() : 'function not available');
+  console.log('Auth middleware - req.user:', req.user);
+  console.log('Auth middleware - req.session:', req.session ? 'exists' : 'missing');
+  
   if (typeof req.isAuthenticated === 'function' && req.isAuthenticated()) {
     req.userInfo = req.user;
     console.log('✅ Authenticated via Passport.js:', req.userInfo);
